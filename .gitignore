@@ -1,0 +1,20 @@
+# Arduino / IDE generated files
+*.hex
+*.elf
+*.eep
+*.bin
+*.map
+*.lst
+*.o
+*.d
+*.a
+
+# Local IDE/editor files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Local build folders
+build/
+cmake-build-*/
