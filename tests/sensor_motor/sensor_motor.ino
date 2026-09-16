@@ -3,6 +3,7 @@
 // Replace all -1 motor placeholders after the TinkerCAD/breadboard pin map is confirmed.
 // Lecture/default HC-SR04 pins are TRIG=13 and ECHO=12; update them if the team uses different pins.
 
+<<<<<<< Updated upstream
 const int TRIG_PIN = 13;
 const int ECHO_PIN = 12;
 const float SOUND_SPEED_CM_PER_US = 0.0345;
@@ -48,15 +49,47 @@ void moveForward() {
   digitalWrite(RIGHT_IN1_PIN, HIGH);
   digitalWrite(RIGHT_IN2_PIN, LOW);
 }
+=======
+const int MOTOR_IN1_PIN = -1;
+const int MOTOR_IN2_PIN = -1;
+const int MOTOR_ENABLE_PIN = -1;
+const int TRIG_PIN = -1;
+const int ECHO_PIN = -1;
+const float SOUND_SPEED = 0.0345; // cm/microsecond
+const float STOP_DISTANCE_CM = 30.0;
+>>>>>>> Stashed changes
+
+bool sensorPinsConfigured() {
+  return TRIG_PIN >= 0 && ECHO_PIN >= 0;
+}
+
+bool motorPinsConfigured() {
+  return MOTOR_IN1_PIN >= 0 && MOTOR_IN2_PIN >= 0;
+}
+
+bool enablePinConfigured() {
+  return MOTOR_ENABLE_PIN >= 0;
+}
 
 float readDistanceCm() {
+<<<<<<< Updated upstream
   digitalWrite(TRIG_PIN, LOW);
   delayMicroseconds(2);
+=======
+  if (!sensorPinsConfigured()) {
+    return -1.0;
+  }
+  
+  digitalWrite(TRIG_PIN, LOW);
+  delayMicroseconds(2);
+
+>>>>>>> Stashed changes
   digitalWrite(TRIG_PIN, HIGH);
   delayMicroseconds(10);
   digitalWrite(TRIG_PIN, LOW);
 
   unsigned long durationUs = pulseIn(ECHO_PIN, HIGH, 30000UL);
+<<<<<<< Updated upstream
   if (durationUs == 0) return -1.0;
 
   return durationUs * SOUND_SPEED_CM_PER_US / 2.0;
@@ -84,6 +117,71 @@ void setup() {
 
   if (!motorPinsConfigured()) {
     Serial.println("Motor pins are not configured yet. Waiting for TinkerCAD/breadboard wiring.");
+=======
+
+  if (durationUs == 0) {
+    return -1.0;
+  }
+
+  return durationUs * SOUND_SPEED_CM_PER_US / 2.0;
+}
+
+void stopMotor() {
+  if (!motorPinsConfigured()) {
+    return;
+  }
+
+  // Coast/stop state. Confirm this behavior on the real hardware.
+  digitalWrite(MOTOR_IN1_PIN, LOW);
+  digitalWrite(MOTOR_IN2_PIN, LOW);
+}
+
+void moveForward() {
+  if (!motorPinsConfigured()) {
+    return;
+  }
+
+  // Confirm this direction with the actual motor wiring.
+  digitalWrite(MOTOR_IN1_PIN, HIGH);
+  digitalWrite(MOTOR_IN2_PIN, LOW);
+}
+
+void enableMotorDriver() {
+  if (enablePinConfigured()) {
+    digitalWrite(MOTOR_ENABLE_PIN, HIGH);
+  }
+}
+
+void setup() {
+  Serial.begin(9600);
+
+  if (sensorPinsConfigured()) {
+    pinMode(TRIG_PIN, OUTPUT);
+    pinMode(ECHO_PIN, INPUT);
+    digitalWrite(TRIG_PIN, LOW);
+  }
+
+  if (motorPinsConfigured()) {
+    pinMode(MOTOR_IN1_PIN, OUTPUT);
+    pinMode(MOTOR_IN2_PIN, OUTPUT);
+
+    if (enablePinConfigured()) {
+      pinMode(MOTOR_ENABLE_PIN, OUTPUT);
+    }
+
+    enableMotorDriver();
+    stopMotor();
+  }
+
+  Serial.println("Sensor + motor integration test started.");
+
+  if (!sensorPinsConfigured()) {
+    Serial.println("Ultrasonic pins are not configured.");
+  }
+
+  if (!motorPinsConfigured()) {
+    Serial.println("Motor pins are not configured.");
+>>>>>>> Stashed changes
   }
 }
 
@@ -91,19 +189,34 @@ void loop() {
   float distanceCm = readDistanceCm();
 
   Serial.print("Distance: ");
+<<<<<<< Updated upstream
   if (distanceCm < 0) {
     Serial.println("no echo");
     stopMotors();
+=======
+
+  if (distanceCm < 0) {
+    Serial.println("No valid reading; motor stopped.");
+    stopMotor();
+>>>>>>> Stashed changes
   } else {
     Serial.print(distanceCm);
     Serial.println(" cm");
 
     if (distanceCm > STOP_DISTANCE_CM) {
+<<<<<<< Updated upstream
       moveForward();
       Serial.println("Command: FORWARD");
     } else {
       stopMotors();
       Serial.println("Command: STOP");
+=======
+      Serial.println("状態: Moving forward");
+      moveForward();
+    } else {
+      Serial.println("State: Stopped near wall");
+      stopMotor();
+>>>>>>> Stashed changes
     }
   }
 
