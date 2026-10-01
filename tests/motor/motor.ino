@@ -1,80 +1,97 @@
-// EG1311 Issue #2 - Motor Control Test
-// Purpose: prepare a safe L293D motor-control test before the team's final
-// TinkerCAD/breadboard pin mapping is confirmed.
+// EG1311 Issue #2 - Two Motor Control Test
+// Based on current TinkerCAD wiring:
+//
+// Left motor:
+// D5 -> L293D Input 1
+// D6 -> L293D Input 2
+//
+// Right motor:
+// D7 -> L293D Input 3
+// D8 -> L293D Input 4
 //
 // IMPORTANT:
-// 1. Replace the -1 placeholders below with the actual Arduino pins from the
-//    team's wiring/TinkerCAD before uploading this sketch.
-// 2. Confirm which HIGH/LOW combination makes the physical motor move forward.
-// 3. Do not assume the direction until it has been tested on the real robot.
+// Confirm actual motor directions on the physical robot.
+// If one motor spins backwards, reverse HIGH/LOW for that motor.
 
-const int MOTOR_IN1_PIN = -1;
-const int MOTOR_IN2_PIN = -1;
-const int MOTOR_ENABLE_PIN = -1; // use -1 if L293D enable is tied directly HIGH
+const int LEFT_IN1_PIN = 5;
+const int LEFT_IN2_PIN = 6;
 
-bool motorPinsConfigured() {
-  return MOTOR_IN1_PIN >= 0 && MOTOR_IN2_PIN >= 0;
+const int RIGHT_IN1_PIN = 7;
+const int RIGHT_IN2_PIN = 8;
+
+// Keep as -1 if L293D enable pins are tied directly HIGH/5V.
+// If enable pins are connected to Arduino pins,
+// replace these with the actual Arduino pin numbers.
+const int LEFT_ENABLE_PIN = -1;
+const int RIGHT_ENABLE_PIN = -1;
+
+bool leftEnableConfigured() {
+  return LEFT_ENABLE_PIN >= 0;
 }
 
-bool enablePinConfigured() {
-  return MOTOR_ENABLE_PIN >= 0;
+bool rightEnableConfigured() {
+  return RIGHT_ENABLE_PIN >= 0;
 }
 
-void enableMotorDriver() {
-  if (enablePinConfigured()) {
-    digitalWrite(MOTOR_ENABLE_PIN, HIGH);
+void enableMotorDrivers() {
+  if (leftEnableConfigured()) {
+    digitalWrite(LEFT_ENABLE_PIN, HIGH);
+  }
+
+  if (rightEnableConfigured()) {
+    digitalWrite(RIGHT_ENABLE_PIN, HIGH);
   }
 }
 
 void moveForward() {
-  if (!motorPinsConfigured()) return;
+  // Left motor
+  digitalWrite(LEFT_IN1_PIN, HIGH);
+  digitalWrite(LEFT_IN2_PIN, LOW);
 
-  // TODO: Verify these states with the team's actual L293D wiring.
-  digitalWrite(MOTOR_IN1_PIN, HIGH);
-  digitalWrite(MOTOR_IN2_PIN, LOW);
+  // Right motor
+  digitalWrite(RIGHT_IN1_PIN, HIGH);
+  digitalWrite(RIGHT_IN2_PIN, LOW);
 }
 
-void stopMotor() {
-  if (!motorPinsConfigured()) return;
+void stopMotors() {
+  // Left motor
+  digitalWrite(LEFT_IN1_PIN, LOW);
+  digitalWrite(LEFT_IN2_PIN, LOW);
 
-  // Coast/stop starter state. Confirm preferred stop behaviour on hardware.
-  digitalWrite(MOTOR_IN1_PIN, LOW);
-  digitalWrite(MOTOR_IN2_PIN, LOW);
+  // Right motor
+  digitalWrite(RIGHT_IN1_PIN, LOW);
+  digitalWrite(RIGHT_IN2_PIN, LOW);
 }
 
 void setup() {
   Serial.begin(9600);
 
-  if (!motorPinsConfigured()) {
-    Serial.println("Motor pins are not configured yet.");
-    Serial.println("Update MOTOR_IN1_PIN and MOTOR_IN2_PIN from TinkerCAD/wiring first.");
-    return;
+  pinMode(LEFT_IN1_PIN, OUTPUT);
+  pinMode(LEFT_IN2_PIN, OUTPUT);
+
+  pinMode(RIGHT_IN1_PIN, OUTPUT);
+  pinMode(RIGHT_IN2_PIN, OUTPUT);
+
+  if (leftEnableConfigured()) {
+    pinMode(LEFT_ENABLE_PIN, OUTPUT);
   }
 
-  pinMode(MOTOR_IN1_PIN, OUTPUT);
-  pinMode(MOTOR_IN2_PIN, OUTPUT);
-
-  if (enablePinConfigured()) {
-    pinMode(MOTOR_ENABLE_PIN, OUTPUT);
+  if (rightEnableConfigured()) {
+    pinMode(RIGHT_ENABLE_PIN, OUTPUT);
   }
 
-  enableMotorDriver();
-  stopMotor();
+  enableMotorDrivers();
+  stopMotors();
 
-  Serial.println("Motor test ready.");
+  Serial.println("Two-motor test ready.");
 }
 
 void loop() {
-  if (!motorPinsConfigured()) {
-    delay(1000);
-    return;
-  }
-
   Serial.println("Forward");
   moveForward();
   delay(2000);
 
   Serial.println("Stop");
-  stopMotor();
+  stopMotors();
   delay(2000);
 }
