@@ -1,20 +1,45 @@
-// EG1311 Basic Motor Output Test
-// This is only a starter test based on the simple lecture-style motor control.
-// IMPORTANT: The final motor code depends on the team's actual L293D wiring.
-// Replace MOTOR_PIN and control logic after confirming the real circuit.
+// EG1311 Dual Motor Test
+// Team wiring:
+// Left motor  -> Arduino D5/D6 via L293D
+// Right motor -> Arduino D7/D8 via L293D
+//
+// The robot was observed moving backwards with HIGH/LOW,
+// so this test uses the reversed LOW/HIGH pair for forward.
 
-const int MOTOR_PIN = 2;
+const int LEFT_IN1_PIN = 5;
+const int LEFT_IN2_PIN = 6;
+const int RIGHT_IN3_PIN = 7;
+const int RIGHT_IN4_PIN = 8;
+
+void moveForward() {
+  digitalWrite(LEFT_IN1_PIN, LOW);
+  digitalWrite(LEFT_IN2_PIN, HIGH);
+
+  digitalWrite(RIGHT_IN3_PIN, LOW);
+  digitalWrite(RIGHT_IN4_PIN, HIGH);
+}
+
+void stopMotors() {
+  digitalWrite(LEFT_IN1_PIN, LOW);
+  digitalWrite(LEFT_IN2_PIN, LOW);
+
+  digitalWrite(RIGHT_IN3_PIN, LOW);
+  digitalWrite(RIGHT_IN4_PIN, LOW);
+}
 
 void setup() {
-  pinMode(MOTOR_PIN, OUTPUT);
+  pinMode(LEFT_IN1_PIN, OUTPUT);
+  pinMode(LEFT_IN2_PIN, OUTPUT);
+  pinMode(RIGHT_IN3_PIN, OUTPUT);
+  pinMode(RIGHT_IN4_PIN, OUTPUT);
+
+  stopMotors();
 }
 
 void loop() {
-  // Motor/control output ON
-  digitalWrite(MOTOR_PIN, HIGH);
+  moveForward();
   delay(2000);
 
-  // Motor/control output OFF
-  digitalWrite(MOTOR_PIN, LOW);
+  stopMotors();
   delay(2000);
 }
