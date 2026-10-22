@@ -1,50 +1,67 @@
 # Wiring and Calibration Record
 
-Update this file whenever the physical wiring changes. Do not guess final pin assignments in `robot.ino`.
-
-## Lecture example values
-
-These are reference values from the EG1311 lecture examples, not necessarily the team's final wiring.
-
-| Component | Reference value |
-|---|---|
-| HC-SR04 TRIG | Digital pin 13 |
-| HC-SR04 ECHO | Digital pin 12 |
-| Serial baud rate | 9600 |
-| Sound speed constant | 0.0345 cm/us |
-| Servo pulse range used in lecture | 660 to 2400 us |
+This file records the team's current physical wiring and the values used by the Arduino code.
 
 ## Team's actual wiring
 
-Fill these in after checking the breadboard and Arduino physically.
-
 | Function | Arduino pin | Confirmed? | Notes |
 |---|---:|---|---|
-| Ultrasonic TRIG | 13 | No | Currently using lecture example |
-| Ultrasonic ECHO | 12 | No | Currently using lecture example |
-| L293D motor IN1 | TBD | No | Must be checked |
-| L293D motor IN2 | TBD | No | Must be checked |
-| L293D enable / PWM | TBD | No | If used |
-| Servo signal | TBD | No | Must be checked |
+| HC-SR04 TRIG | D9 | Yes | Team TinkerCAD / wiring |
+| HC-SR04 ECHO | D10 | Yes | Team TinkerCAD / wiring |
+| Left motor IN1 | D5 | Yes | L293D pin 2 |
+| Left motor IN2 | D6 | Yes | L293D pin 7 |
+| Right motor IN3 | D7 | Yes | L293D pin 10 |
+| Right motor IN4 | D8 | Yes | L293D pin 15 |
+| Servo signal | D3 | Yes | Catapult servo |
+| L293D 1,2EN | 5V | Yes | Enable tied HIGH |
+| L293D 3,4EN | 5V | Yes | Enable tied HIGH |
 
-## Calibration values
+All Arduino/L293D/battery grounds must share a common ground.
 
-| Parameter | Current value | Confirmed? |
+## Power
+
+- Arduino logic can be powered by USB during programming/testing.
+- The DC motors need their motor battery supply connected to the L293D motor-power input.
+- Do not rely on the Arduino 5V pin to power the DC motors.
+
+## Current calibration values
+
+| Parameter | Current value | Status |
 |---|---:|---|
-| Stop distance | 30 cm starter value | No |
-| Servo rest angle | 0 degrees starter value | No |
-| Servo fire angle | 90 degrees starter value | No |
-| Settling delay before firing | 500 ms starter value | No |
+| Stop distance | 15 cm | Starting value for closer wall approach; tune on course |
+| Servo rest angle | 0 degrees | Test value; verify with final catapult |
+| Servo fire angle | 90 degrees | Test value; verify with final catapult |
+| Settling delay before firing | 500 ms | Tune if needed |
+| Servo fire hold | 500 ms | Tune if needed |
 
-## Motor direction test
+## Motor direction
 
-After wiring is confirmed, record what each L293D input combination actually does on the robot.
+The physical robot was observed moving backwards with the previous HIGH/LOW command.
 
-| IN1 | IN2 | Observed result |
-|---:|---:|---|
-| LOW | LOW | TBD |
-| HIGH | LOW | TBD |
-| LOW | HIGH | TBD |
-| HIGH | HIGH | TBD |
+Current forward command:
 
-This table matters because the exact physical behavior depends on how the motor and driver are wired.
+| Motor | First input | Second input |
+|---|---:|---:|
+| Left (D5/D6) | LOW | HIGH |
+| Right (D7/D8) | LOW | HIGH |
+
+Current stop command:
+
+| Motor | First input | Second input |
+|---|---:|---:|
+| Left | LOW | LOW |
+| Right | LOW | LOW |
+
+If the robot spins instead of moving straight, test each side independently and reverse only the motor that is physically backwards.
+
+## Final-course calibration checklist
+
+Before the graded run:
+
+1. Verify both wheels drive the robot forward.
+2. Attach the ultrasonic sensor rigidly and point it at the final wall.
+3. Test the stopping threshold at 20 cm, 15 cm, and 10 cm if necessary.
+4. Keep the largest threshold that stops reliably without touching the wall.
+5. Verify the servo rest angle does not preload or jam the catapult.
+6. Verify the firing angle releases the ball consistently.
+7. Power-cycle the Arduino and run the full sequence several times.
