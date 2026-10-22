@@ -1,101 +1,97 @@
-// EG1311 Robot - Integration Skeleton
+// EG1311 Robot - Integrated autonomous program
 // Branch policy: feature branch -> dev -> main
 //
-// Confirmed from the team's TinkerCAD / wiring notes:
+// Confirmed team wiring:
 // - HC-SR04: TRIG D9, ECHO D10
-// - Left motor:  D5 -> L293D pin 2 (IN1), D6 -> pin 7 (IN2)
-// - Right motor: D7 -> L293D pin 10 (IN3), D8 -> pin 15 (IN4)
+// - Left motor:  D5 -> L293D IN1, D6 -> L293D IN2
+// - Right motor: D7 -> L293D IN3, D8 -> L293D IN4
 // - Servo signal: D3
-// - L293D enable pins 1 and 9 are tied to 5V, so no Arduino enable pins are required.
+// - L293D enable pins 1 and 9 are tied HIGH to 5V.
 //
-// Still NOT confirmed:
-// - Which HIGH/LOW combinations make both physical wheels move the robot forward
-// - Servo resting/firing angles
-// - Final stopping distance and timing on the real course
+// Current physical observation:
+// - The previous HIGH/LOW motor command drove the robot backwards.
+// - Forward is therefore set to the opposite LOW/HIGH command on both sides.
+//
+// Values that still need final course calibration:
+// - STOP_DISTANCE_CM
+// - SERVO_REST_ANGLE / SERVO_FIRE_ANGLE
+// - Settling/firing delays
 
 #include <Servo.h>
 
-// ---------- Confirmed wiring ----------
+// ---------- Wiring ----------
 const int TRIG_PIN = 9;
 const int ECHO_PIN = 10;
 
-const int LEFT_IN1_PIN = 5;   // L293D pin 2
-const int LEFT_IN2_PIN = 6;   // L293D pin 7
-const int RIGHT_IN3_PIN = 7;  // L293D pin 10
-const int RIGHT_IN4_PIN = 8;  // L293D pin 15
+const int LEFT_IN1_PIN = 5;
+const int LEFT_IN2_PIN = 6;
+const int RIGHT_IN3_PIN = 7;
+const int RIGHT_IN4_PIN = 8;
 
 const int SERVO_PIN = 3;
 
+// ---------- Calibration ----------
 const float SOUND_SPEED_CM_PER_US = 0.0345;
 
-// ---------- Must be calibrated / physically verified ----------
-const float STOP_DISTANCE_CM = 30.0; // TODO: calibrate on the real course
+// Reduced from the old 30 cm starter value so the robot can approach
+// the wall more closely. Fine-tune on the real course.
+const float STOP_DISTANCE_CM = 15.0;
 
-// Leave these as -1 until the physical motor direction is tested.
-// Set each value to HIGH or LOW only after confirming the real wheel direction.
-const int LEFT_FORWARD_IN1_LEVEL = -1;
-const int LEFT_FORWARD_IN2_LEVEL = -1;
-const int RIGHT_FORWARD_IN3_LEVEL = -1;
-const int RIGHT_FORWARD_IN4_LEVEL = -1;
+const int SERVO_REST_ANGLE = 0;
+const int SERVO_FIRE_ANGLE = 90;
 
-// Leave these as -1 until the catapult mechanism is physically calibrated.
-const int SERVO_REST_ANGLE = -1;
-const int SERVO_FIRE_ANGLE = -1;
+const unsigned long SETTLING_DELAY_MS = 500;
+const unsigned long FIRE_HOLD_MS = 500;
 
+// ---------- State ----------
 Servo catapultServo;
 bool catapultFired = false;
-bool servoReady = false;
-bool motorDirectionReady = false;
-
-bool validDigitalLevel(int value) {
-  return value == LOW || value == HIGH;
-}
 
 float readDistanceCm() {
   digitalWrite(TRIG_PIN, LOW);
   delayMicroseconds(2);
+
   digitalWrite(TRIG_PIN, HIGH);
   delayMicroseconds(10);
   digitalWrite(TRIG_PIN, LOW);
 
-  unsigned long microseconds = pulseIn(ECHO_PIN, HIGH, 30000UL);
+  unsigned long echoTimeUs = pulseIn(ECHO_PIN, HIGH, 30000UL);
 
-  if (microseconds == 0) {
-    return -1.0; // no echo / timeout
+  if (echoTimeUs == 0) {
+    return -1.0;
   }
 
-  return microseconds * SOUND_SPEED_CM_PER_US / 2.0;
+  return echoTimeUs * SOUND_SPEED_CM_PER_US / 2.0;
+}
+
+void moveForward() {
+  // Reversed from the earlier command because the physical robot
+  // was observed moving backwards.
+  digitalWrite(LEFT_IN1_PIN, LOW);
+  digitalWrite(LEFT_IN2_PIN, HIGH);
+
+  digitalWrite(RIGHT_IN3_PIN, LOW);
+  digitalWrite(RIGHT_IN4_PIN, HIGH);
 }
 
 void stopMotors() {
   digitalWrite(LEFT_IN1_PIN, LOW);
   digitalWrite(LEFT_IN2_PIN, LOW);
+
   digitalWrite(RIGHT_IN3_PIN, LOW);
   digitalWrite(RIGHT_IN4_PIN, LOW);
 }
 
-void moveForward() {
-  if (!motorDirectionReady) {
-    stopMotors();
-    return;
-  }
-
-  digitalWrite(LEFT_IN1_PIN, LEFT_FORWARD_IN1_LEVEL);
-  digitalWrite(LEFT_IN2_PIN, LEFT_FORWARD_IN2_LEVEL);
-  digitalWrite(RIGHT_IN3_PIN, RIGHT_FORWARD_IN3_LEVEL);
-  digitalWrite(RIGHT_IN4_PIN, RIGHT_FORWARD_IN4_LEVEL);
-}
-
 void fireCatapultOnce() {
-  if (catapultFired || !servoReady) {
+  if (catapultFired) {
     return;
   }
 
   stopMotors();
-  delay(500); // TODO: tune settling delay on the real robot
+  delay(SETTLING_DELAY_MS);
 
   catapultServo.write(SERVO_FIRE_ANGLE);
-  delay(500); // TODO: tune firing movement timing
+  delay(FIRE_HOLD_MS);
   catapultServo.write(SERVO_REST_ANGLE);
 
   catapultFired = true;
@@ -104,37 +100,22 @@ void fireCatapultOnce() {
 void setup() {
   Serial.begin(9600);
 
-  // HC-SR04
   pinMode(TRIG_PIN, OUTPUT);
   pinMode(ECHO_PIN, INPUT);
   digitalWrite(TRIG_PIN, LOW);
 
-  // L293D motor inputs. Enable pins 1 and 9 are permanently tied to 5V.
   pinMode(LEFT_IN1_PIN, OUTPUT);
   pinMode(LEFT_IN2_PIN, OUTPUT);
   pinMode(RIGHT_IN3_PIN, OUTPUT);
   pinMode(RIGHT_IN4_PIN, OUTPUT);
+
   stopMotors();
 
-  motorDirectionReady =
-      validDigitalLevel(LEFT_FORWARD_IN1_LEVEL) &&
-      validDigitalLevel(LEFT_FORWARD_IN2_LEVEL) &&
-      validDigitalLevel(RIGHT_FORWARD_IN3_LEVEL) &&
-      validDigitalLevel(RIGHT_FORWARD_IN4_LEVEL);
+  catapultServo.attach(SERVO_PIN, 660, 2400);
+  catapultServo.write(SERVO_REST_ANGLE);
 
-  if (!motorDirectionReady) {
-    Serial.println("MOTOR SETUP REQUIRED: confirm forward HIGH/LOW levels on the physical robot.");
-  }
-
-  // Do not move the servo until its safe angles have been physically confirmed.
-  if (SERVO_REST_ANGLE >= 0 && SERVO_REST_ANGLE <= 180 &&
-      SERVO_FIRE_ANGLE >= 0 && SERVO_FIRE_ANGLE <= 180) {
-    catapultServo.attach(SERVO_PIN, 660, 2400);
-    catapultServo.write(SERVO_REST_ANGLE);
-    servoReady = true;
-  } else {
-    Serial.println("SERVO SETUP REQUIRED: calibrate resting and firing angles first.");
-  }
+  Serial.println("EG1311 robot ready.");
+  delay(1000);
 }
 
 void loop() {
@@ -144,25 +125,28 @@ void loop() {
   Serial.print(distanceCm);
   Serial.println(" cm");
 
-  // Ultrasonic testing works now, but autonomous movement stays disabled
-  // until the physical motor direction has been confirmed.
-  if (!motorDirectionReady) {
+  // Fail safe: if the sensor gives no valid echo, do not keep driving.
+  if (distanceCm < 0) {
+    Serial.println("No ultrasonic reading -> STOP");
     stopMotors();
-    delay(200);
+    delay(100);
     return;
   }
 
-  if (distanceCm < 0) {
+  // Once the catapult has fired, keep the robot stationary.
+  if (catapultFired) {
     stopMotors();
-  } else if (distanceCm >= STOP_DISTANCE_CM && !catapultFired) {
+    delay(100);
+    return;
+  }
+
+  if (distanceCm > STOP_DISTANCE_CM) {
+    Serial.println("Forward");
     moveForward();
   } else {
+    Serial.println("Wall reached -> STOP");
     stopMotors();
-
-    // Firing remains disabled until the servo angles are calibrated.
-    if (servoReady) {
-      fireCatapultOnce();
-    }
+    fireCatapultOnce();
   }
 
   delay(50);
