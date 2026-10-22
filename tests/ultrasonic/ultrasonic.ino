@@ -1,11 +1,9 @@
 // EG1311 Ultrasonic Sensor Test
-// Based on the L3C Driver/Sensor lecture example.
-// Default lecture wiring: TRIG = 13, ECHO = 12.
-// Change these pins if the team's actual wiring is different.
+// Team wiring: TRIG D9, ECHO D10
 
-const int TRIG_PIN = 13;
-const int ECHO_PIN = 12;
-const float SOUND_SPEED = 0.0345; // cm/microsecond
+const int TRIG_PIN = 9;
+const int ECHO_PIN = 10;
+const float SOUND_SPEED_CM_PER_US = 0.0345;
 
 void setup() {
   pinMode(TRIG_PIN, OUTPUT);
@@ -16,16 +14,24 @@ void setup() {
 }
 
 void loop() {
+  digitalWrite(TRIG_PIN, LOW);
+  delayMicroseconds(2);
+
   digitalWrite(TRIG_PIN, HIGH);
   delayMicroseconds(10);
   digitalWrite(TRIG_PIN, LOW);
 
-  unsigned long microsecs = pulseIn(ECHO_PIN, HIGH);
-  float distanceCm = microsecs * SOUND_SPEED / 2.0;
+  unsigned long echoTimeUs = pulseIn(ECHO_PIN, HIGH, 30000UL);
 
-  Serial.print("Distance: ");
-  Serial.print(distanceCm);
-  Serial.println(" cm");
+  if (echoTimeUs == 0) {
+    Serial.println("No echo");
+  } else {
+    float distanceCm = echoTimeUs * SOUND_SPEED_CM_PER_US / 2.0;
+
+    Serial.print("Distance: ");
+    Serial.print(distanceCm);
+    Serial.println(" cm");
+  }
 
   delay(100);
 }

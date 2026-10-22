@@ -1,36 +1,66 @@
-// EG1311 Sensor + Motor Integration Starter
-// Based on the lecture-style ultrasonic + motor example.
-// IMPORTANT: MOTOR_PIN = 2 is only a starter/reference value.
-// Confirm the real L293D wiring before using this on the final robot.
+// EG1311 Sensor + Motor Integration Test
+// Team wiring:
+// HC-SR04: TRIG D9, ECHO D10
+// Left motor: D5/D6
+// Right motor: D7/D8
 
-const int MOTOR_PIN = 2;
-const int TRIG_PIN = 13;
-const int ECHO_PIN = 12;
-const float SOUND_SPEED = 0.0345; // cm/microsecond
-const float STOP_DISTANCE_CM = 30.0;
+const int TRIG_PIN = 9;
+const int ECHO_PIN = 10;
+
+const int LEFT_IN1_PIN = 5;
+const int LEFT_IN2_PIN = 6;
+const int RIGHT_IN3_PIN = 7;
+const int RIGHT_IN4_PIN = 8;
+
+const float SOUND_SPEED_CM_PER_US = 0.0345;
+const float STOP_DISTANCE_CM = 15.0;
 
 float readDistanceCm() {
+  digitalWrite(TRIG_PIN, LOW);
+  delayMicroseconds(2);
+
   digitalWrite(TRIG_PIN, HIGH);
   delayMicroseconds(10);
   digitalWrite(TRIG_PIN, LOW);
 
-  unsigned long microsecs = pulseIn(ECHO_PIN, HIGH, 30000UL);
-  if (microsecs == 0) {
+  unsigned long echoTimeUs = pulseIn(ECHO_PIN, HIGH, 30000UL);
+
+  if (echoTimeUs == 0) {
     return -1.0;
   }
 
-  return microsecs * SOUND_SPEED / 2.0;
+  return echoTimeUs * SOUND_SPEED_CM_PER_US / 2.0;
+}
+
+void moveForward() {
+  digitalWrite(LEFT_IN1_PIN, LOW);
+  digitalWrite(LEFT_IN2_PIN, HIGH);
+
+  digitalWrite(RIGHT_IN3_PIN, LOW);
+  digitalWrite(RIGHT_IN4_PIN, HIGH);
+}
+
+void stopMotors() {
+  digitalWrite(LEFT_IN1_PIN, LOW);
+  digitalWrite(LEFT_IN2_PIN, LOW);
+
+  digitalWrite(RIGHT_IN3_PIN, LOW);
+  digitalWrite(RIGHT_IN4_PIN, LOW);
 }
 
 void setup() {
-  pinMode(MOTOR_PIN, OUTPUT);
+  Serial.begin(9600);
+
   pinMode(TRIG_PIN, OUTPUT);
   pinMode(ECHO_PIN, INPUT);
-
   digitalWrite(TRIG_PIN, LOW);
-  digitalWrite(MOTOR_PIN, LOW);
 
-  Serial.begin(9600);
+  pinMode(LEFT_IN1_PIN, OUTPUT);
+  pinMode(LEFT_IN2_PIN, OUTPUT);
+  pinMode(RIGHT_IN3_PIN, OUTPUT);
+  pinMode(RIGHT_IN4_PIN, OUTPUT);
+
+  stopMotors();
 }
 
 void loop() {
@@ -40,10 +70,12 @@ void loop() {
   Serial.print(distanceCm);
   Serial.println(" cm");
 
-  if (distanceCm < 0 || distanceCm < STOP_DISTANCE_CM) {
-    digitalWrite(MOTOR_PIN, LOW);
+  if (distanceCm < 0 || distanceCm <= STOP_DISTANCE_CM) {
+    stopMotors();
+    Serial.println("Stop");
   } else {
-    digitalWrite(MOTOR_PIN, HIGH);
+    moveForward();
+    Serial.println("Forward");
   }
 
   delay(100);

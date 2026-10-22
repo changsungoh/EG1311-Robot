@@ -1,12 +1,12 @@
-// EG1311 Catapult Sequence Starter
-// Test the servo mechanism independently before integrating it with motor control.
-// Change SERVO_PIN and the two angles to match the real robot.
+// EG1311 Catapult Sequence Test
+// Team wiring: servo signal D3
+// Adjust REST_ANGLE and FIRE_ANGLE after physical catapult calibration.
 
 #include <Servo.h>
 
 Servo catapult;
 
-const int SERVO_PIN = 2;
+const int SERVO_PIN = 3;
 const int REST_ANGLE = 0;
 const int FIRE_ANGLE = 90;
 
