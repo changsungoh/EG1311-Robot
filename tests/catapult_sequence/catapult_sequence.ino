@@ -1,6 +1,5 @@
 // EG1311 Catapult Sequence Test
 // Team wiring: servo signal D3
-// Adjust REST_ANGLE and FIRE_ANGLE after physical catapult calibration.
 
 #include <Servo.h>
 
@@ -8,7 +7,7 @@ Servo catapult;
 
 const int SERVO_PIN = 3;
 const int REST_ANGLE = 0;
-const int FIRE_ANGLE = 90;
+const int FIRE_ANGLE = 135;
 
 bool fired = false;
 
