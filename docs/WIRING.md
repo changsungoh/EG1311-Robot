@@ -30,7 +30,7 @@ All Arduino/L293D/battery grounds must share a common ground.
 |---|---:|---|
 | Stop distance | 15 cm | Starting value for closer wall approach; tune on course |
 | Servo rest angle | 0 degrees | Current rest value |
-| Servo fire angle | 180 degrees | Updated from team physical testing |
+| Servo fire angle | 250 command value | Note: Servo.write() normally operates over 0-180 |
 | Settling delay before firing | 500 ms | Tune if needed |
 | Servo fire hold | 500 ms | Tune if needed |
 
@@ -63,5 +63,5 @@ Before the graded run:
 3. Test the stopping threshold at 20 cm, 15 cm, and 10 cm if necessary.
 4. Keep the largest threshold that stops reliably without touching the wall.
 5. Verify the servo rest angle does not preload or jam the catapult.
-6. Verify the 180 degree firing angle releases the ball consistently.
+6. Verify the requested firing command on the real mechanism; Servo.write() normally caps the effective angle range at 180 degrees.
 7. Power-cycle the Arduino and run the full sequence several times.
