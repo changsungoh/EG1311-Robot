@@ -7,7 +7,7 @@ Servo servo;
 
 const int SERVO_PIN = 3;
 const int REST_ANGLE = 0;
-const int FIRE_ANGLE = 180;
+const int FIRE_ANGLE = 250;
 
 void setup() {
   servo.attach(SERVO_PIN, 660, 2400);
