@@ -29,21 +29,21 @@ All Arduino/L293D/battery grounds must share a common ground.
 | Parameter | Current value | Status |
 |---|---:|---|
 | Stop distance | 15 cm | Starting value for closer wall approach; tune on course |
-| Servo rest angle | 0 degrees | Test value; verify with final catapult |
-| Servo fire angle | 90 degrees | Test value; verify with final catapult |
+| Servo rest angle | 0 degrees | Current rest value |
+| Servo fire angle | 135 degrees | Updated from team physical testing |
 | Settling delay before firing | 500 ms | Tune if needed |
 | Servo fire hold | 500 ms | Tune if needed |
 
 ## Motor direction
 
-The physical robot was observed moving backwards with the previous HIGH/LOW command.
+Latest physical test showed that LOW/HIGH drives the robot backwards.
 
 Current forward command:
 
 | Motor | First input | Second input |
 |---|---:|---:|
-| Left (D5/D6) | LOW | HIGH |
-| Right (D7/D8) | LOW | HIGH |
+| Left (D5/D6) | HIGH | LOW |
+| Right (D7/D8) | HIGH | LOW |
 
 Current stop command:
 
@@ -63,5 +63,5 @@ Before the graded run:
 3. Test the stopping threshold at 20 cm, 15 cm, and 10 cm if necessary.
 4. Keep the largest threshold that stops reliably without touching the wall.
 5. Verify the servo rest angle does not preload or jam the catapult.
-6. Verify the firing angle releases the ball consistently.
+6. Verify the 135 degree firing angle releases the ball consistently.
 7. Power-cycle the Arduino and run the full sequence several times.
