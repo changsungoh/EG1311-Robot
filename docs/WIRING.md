@@ -29,10 +29,15 @@ All Arduino/L293D/battery grounds must share a common ground.
 | Parameter | Current value | Status |
 |---|---:|---|
 | Stop distance | 15 cm | Starting value for closer wall approach; tune on course |
-| Servo rest angle | 0 degrees | Current rest value |
-| Servo fire angle | 250 command value | Note: Servo.write() normally operates over 0-180 |
+| Servo rest pulse | 660 us | Current rest command |
+| Servo fire pulse | 2500 us | Extended beyond the previous 2400 us maximum |
 | Settling delay before firing | 500 ms | Tune if needed |
 | Servo fire hold | 500 ms | Tune if needed |
+
+The catapult now uses `Servo.writeMicroseconds()` instead of `Servo.write(angle)`.
+This allows direct pulse-width calibration beyond the previous 180-degree command mapping.
+
+Do not keep increasing the pulse if the servo hits a mechanical stop, stalls, buzzes continuously, or becomes hot.
 
 ## Motor direction
 
@@ -62,6 +67,6 @@ Before the graded run:
 2. Attach the ultrasonic sensor rigidly and point it at the final wall.
 3. Test the stopping threshold at 20 cm, 15 cm, and 10 cm if necessary.
 4. Keep the largest threshold that stops reliably without touching the wall.
-5. Verify the servo rest angle does not preload or jam the catapult.
-6. Verify the requested firing command on the real mechanism; Servo.write() normally caps the effective angle range at 180 degrees.
+5. Test the servo at 2500 us.
+6. If more travel is still needed, increase the pulse only in small steps and stop immediately if the servo reaches its mechanical limit or stalls.
 7. Power-cycle the Arduino and run the full sequence several times.
