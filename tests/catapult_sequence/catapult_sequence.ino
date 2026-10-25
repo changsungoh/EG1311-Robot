@@ -6,23 +6,23 @@
 Servo catapult;
 
 const int SERVO_PIN = 3;
-const int REST_ANGLE = 0;
-const int FIRE_ANGLE = 250;
+const int REST_PULSE_US = 660;
+const int FIRE_PULSE_US = 2500;
 
 bool fired = false;
 
 void setup() {
-  catapult.attach(SERVO_PIN, 660, 2400);
-  catapult.write(REST_ANGLE);
+  catapult.attach(SERVO_PIN, REST_PULSE_US, FIRE_PULSE_US);
+  catapult.writeMicroseconds(REST_PULSE_US);
   delay(1000);
 }
 
 void loop() {
   if (!fired) {
     delay(500);
-    catapult.write(FIRE_ANGLE);
+    catapult.writeMicroseconds(FIRE_PULSE_US);
     delay(500);
-    catapult.write(REST_ANGLE);
+    catapult.writeMicroseconds(REST_PULSE_US);
     fired = true;
   }
 }
