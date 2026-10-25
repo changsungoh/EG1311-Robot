@@ -12,9 +12,14 @@
 // - The current LOW/HIGH motor command makes the robot move backwards.
 // - Forward is therefore set to HIGH/LOW on both sides.
 //
+// Servo control:
+// - Use writeMicroseconds() instead of Servo.write(angle).
+// - Rest pulse: 660 us
+// - Fire pulse: 2500 us
+//
 // Values that may still need final course calibration:
 // - STOP_DISTANCE_CM
-// - SERVO_REST_ANGLE
+// - SERVO_FIRE_PULSE_US
 // - Settling/firing delays
 
 #include <Servo.h>
@@ -35,8 +40,8 @@ const float SOUND_SPEED_CM_PER_US = 0.0345;
 
 const float STOP_DISTANCE_CM = 15.0;
 
-const int SERVO_REST_ANGLE = 0;
-const int SERVO_FIRE_ANGLE = 250;
+const int SERVO_REST_PULSE_US = 660;
+const int SERVO_FIRE_PULSE_US = 2500;
 
 const unsigned long SETTLING_DELAY_MS = 500;
 const unsigned long FIRE_HOLD_MS = 500;
@@ -88,9 +93,9 @@ void fireCatapultOnce() {
   stopMotors();
   delay(SETTLING_DELAY_MS);
 
-  catapultServo.write(SERVO_FIRE_ANGLE);
+  catapultServo.writeMicroseconds(SERVO_FIRE_PULSE_US);
   delay(FIRE_HOLD_MS);
-  catapultServo.write(SERVO_REST_ANGLE);
+  catapultServo.writeMicroseconds(SERVO_REST_PULSE_US);
 
   catapultFired = true;
 }
@@ -109,8 +114,8 @@ void setup() {
 
   stopMotors();
 
-  catapultServo.attach(SERVO_PIN, 660, 2400);
-  catapultServo.write(SERVO_REST_ANGLE);
+  catapultServo.attach(SERVO_PIN, SERVO_REST_PULSE_US, SERVO_FIRE_PULSE_US);
+  catapultServo.writeMicroseconds(SERVO_REST_PULSE_US);
 
   Serial.println("EG1311 robot ready.");
   delay(1000);
