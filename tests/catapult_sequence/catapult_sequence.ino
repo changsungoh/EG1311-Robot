@@ -7,7 +7,7 @@ Servo catapult;
 
 const int SERVO_PIN = 3;
 const int REST_ANGLE = 0;
-const int FIRE_ANGLE = 135;
+const int FIRE_ANGLE = 180;
 
 bool fired = false;
 
