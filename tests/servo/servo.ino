@@ -6,19 +6,19 @@
 Servo servo;
 
 const int SERVO_PIN = 3;
-const int REST_ANGLE = 0;
-const int FIRE_ANGLE = 250;
+const int REST_PULSE_US = 660;
+const int FIRE_PULSE_US = 2500;
 
 void setup() {
-  servo.attach(SERVO_PIN, 660, 2400);
-  servo.write(REST_ANGLE);
+  servo.attach(SERVO_PIN, REST_PULSE_US, FIRE_PULSE_US);
+  servo.writeMicroseconds(REST_PULSE_US);
   delay(1000);
 }
 
 void loop() {
-  servo.write(FIRE_ANGLE);
+  servo.writeMicroseconds(FIRE_PULSE_US);
   delay(1000);
 
-  servo.write(REST_ANGLE);
+  servo.writeMicroseconds(REST_PULSE_US);
   delay(1000);
 }
