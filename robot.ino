@@ -36,7 +36,7 @@ const float SOUND_SPEED_CM_PER_US = 0.0345;
 const float STOP_DISTANCE_CM = 15.0;
 
 const int SERVO_REST_ANGLE = 0;
-const int SERVO_FIRE_ANGLE = 135;
+const int SERVO_FIRE_ANGLE = 180;
 
 const unsigned long SETTLING_DELAY_MS = 500;
 const unsigned long FIRE_HOLD_MS = 500;
