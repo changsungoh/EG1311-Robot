@@ -8,13 +8,13 @@
 // - Servo signal: D3
 // - L293D enable pins 1 and 9 are tied HIGH to 5V.
 //
-// Current physical observation:
-// - The previous HIGH/LOW motor command drove the robot backwards.
-// - Forward is therefore set to the opposite LOW/HIGH command on both sides.
+// Latest physical observation:
+// - The current LOW/HIGH motor command makes the robot move backwards.
+// - Forward is therefore set to HIGH/LOW on both sides.
 //
-// Values that still need final course calibration:
+// Values that may still need final course calibration:
 // - STOP_DISTANCE_CM
-// - SERVO_REST_ANGLE / SERVO_FIRE_ANGLE
+// - SERVO_REST_ANGLE
 // - Settling/firing delays
 
 #include <Servo.h>
@@ -33,12 +33,10 @@ const int SERVO_PIN = 3;
 // ---------- Calibration ----------
 const float SOUND_SPEED_CM_PER_US = 0.0345;
 
-// Reduced from the old 30 cm starter value so the robot can approach
-// the wall more closely. Fine-tune on the real course.
 const float STOP_DISTANCE_CM = 15.0;
 
 const int SERVO_REST_ANGLE = 0;
-const int SERVO_FIRE_ANGLE = 90;
+const int SERVO_FIRE_ANGLE = 135;
 
 const unsigned long SETTLING_DELAY_MS = 500;
 const unsigned long FIRE_HOLD_MS = 500;
@@ -65,13 +63,13 @@ float readDistanceCm() {
 }
 
 void moveForward() {
-  // Reversed from the earlier command because the physical robot
-  // was observed moving backwards.
-  digitalWrite(LEFT_IN1_PIN, LOW);
-  digitalWrite(LEFT_IN2_PIN, HIGH);
+  // Latest physical test: LOW/HIGH moved backwards,
+  // so forward is HIGH/LOW on both motors.
+  digitalWrite(LEFT_IN1_PIN, HIGH);
+  digitalWrite(LEFT_IN2_PIN, LOW);
 
-  digitalWrite(RIGHT_IN3_PIN, LOW);
-  digitalWrite(RIGHT_IN4_PIN, HIGH);
+  digitalWrite(RIGHT_IN3_PIN, HIGH);
+  digitalWrite(RIGHT_IN4_PIN, LOW);
 }
 
 void stopMotors() {
