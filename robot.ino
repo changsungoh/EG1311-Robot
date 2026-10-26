@@ -12,8 +12,14 @@
 // - HIGH/LOW makes the robot move backwards.
 // - Forward is therefore LOW/HIGH on both sides.
 //
+// Sequence:
+// 1. Drive forward over the obstacles.
+// 2. Stop near the wall.
+// 3. Fire the catapult.
+// 4. Reverse for BACKUP_TIME_MS.
+// 5. Stop.
+//
 // Servo control:
-// - Use writeMicroseconds() instead of Servo.write(angle).
 // - Rest pulse: 660 us
 // - Fire pulse: 2500 us
 
@@ -40,9 +46,12 @@ const int SERVO_FIRE_PULSE_US = 2500;
 const unsigned long SETTLING_DELAY_MS = 500;
 const unsigned long FIRE_HOLD_MS = 500;
 
+// Tune this so the robot reverses the required distance after firing.
+const unsigned long BACKUP_TIME_MS = 3000;
+
 // ---------- State ----------
 Servo catapultServo;
-bool catapultFired = false;
+bool sequenceComplete = false;
 
 float readDistanceCm() {
   digitalWrite(TRIG_PIN, LOW);
@@ -62,13 +71,20 @@ float readDistanceCm() {
 }
 
 void moveForward() {
-  // Latest physical test: HIGH/LOW moved backwards,
-  // so forward is LOW/HIGH on both motors.
   digitalWrite(LEFT_IN1_PIN, LOW);
   digitalWrite(LEFT_IN2_PIN, HIGH);
 
   digitalWrite(RIGHT_IN3_PIN, LOW);
   digitalWrite(RIGHT_IN4_PIN, HIGH);
+}
+
+void moveBackward() {
+  // Exact opposite of moveForward().
+  digitalWrite(LEFT_IN1_PIN, HIGH);
+  digitalWrite(LEFT_IN2_PIN, LOW);
+
+  digitalWrite(RIGHT_IN3_PIN, HIGH);
+  digitalWrite(RIGHT_IN4_PIN, LOW);
 }
 
 void stopMotors() {
@@ -79,11 +95,7 @@ void stopMotors() {
   digitalWrite(RIGHT_IN4_PIN, LOW);
 }
 
-void fireCatapultOnce() {
-  if (catapultFired) {
-    return;
-  }
-
+void fireAndReturn() {
   stopMotors();
   delay(SETTLING_DELAY_MS);
 
@@ -91,7 +103,13 @@ void fireCatapultOnce() {
   delay(FIRE_HOLD_MS);
   catapultServo.writeMicroseconds(SERVO_REST_PULSE_US);
 
-  catapultFired = true;
+  // Return after firing.
+  delay(200);
+  moveBackward();
+  delay(BACKUP_TIME_MS);
+  stopMotors();
+
+  sequenceComplete = true;
 }
 
 void setup() {
@@ -116,6 +134,13 @@ void setup() {
 }
 
 void loop() {
+  // Full run is completed once: forward -> fire -> reverse -> stop.
+  if (sequenceComplete) {
+    stopMotors();
+    delay(100);
+    return;
+  }
+
   float distanceCm = readDistanceCm();
 
   Serial.print("Distance: ");
@@ -129,19 +154,12 @@ void loop() {
     return;
   }
 
-  if (catapultFired) {
-    stopMotors();
-    delay(100);
-    return;
-  }
-
   if (distanceCm > STOP_DISTANCE_CM) {
     Serial.println("Forward");
     moveForward();
   } else {
-    Serial.println("Wall reached -> STOP");
-    stopMotors();
-    fireCatapultOnce();
+    Serial.println("Wall reached -> FIRE -> REVERSE");
+    fireAndReturn();
   }
 
   delay(50);
