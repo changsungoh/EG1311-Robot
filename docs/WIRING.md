@@ -16,8 +16,6 @@ This file records the team's current physical wiring and the values used by the 
 | L293D 1,2EN | 5V | Yes | Enable tied HIGH |
 | L293D 3,4EN | 5V | Yes | Enable tied HIGH |
 
-All Arduino/L293D/battery grounds must share a common ground.
-
 ## Current calibration values
 
 | Parameter | Current value |
@@ -27,23 +25,37 @@ All Arduino/L293D/battery grounds must share a common ground.
 | Servo fire pulse | 2500 us |
 | Settling delay before firing | 500 ms |
 | Servo fire hold | 500 ms |
+| Reverse time after firing | 3000 ms |
 
 ## Motor direction
 
-Latest physical test showed that HIGH/LOW drives the robot backwards.
-
-Current forward command:
+Forward:
 
 | Motor | First input | Second input |
 |---|---:|---:|
 | Left (D5/D6) | LOW | HIGH |
 | Right (D7/D8) | LOW | HIGH |
 
-Current stop command:
+Backward:
+
+| Motor | First input | Second input |
+|---|---:|---:|
+| Left (D5/D6) | HIGH | LOW |
+| Right (D7/D8) | HIGH | LOW |
+
+Stop:
 
 | Motor | First input | Second input |
 |---|---:|---:|
 | Left | LOW | LOW |
 | Right | LOW | LOW |
 
-The sensor + motor integration test already uses this same LOW/HIGH forward direction.
+## Autonomous sequence
+
+1. Move forward.
+2. Stop when the ultrasonic sensor reaches the stop threshold.
+3. Fire the catapult.
+4. Reverse for `BACKUP_TIME_MS`.
+5. Stop permanently.
+
+Adjust `BACKUP_TIME_MS` after measuring how far the robot needs to return on the real course.
