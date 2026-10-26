@@ -3,8 +3,8 @@
 // Left motor  -> Arduino D5/D6 via L293D
 // Right motor -> Arduino D7/D8 via L293D
 //
-// Latest physical test showed LOW/HIGH drives the robot backwards.
-// Forward is therefore HIGH/LOW on both motors.
+// Latest physical test showed HIGH/LOW drives the robot backwards.
+// Forward is therefore LOW/HIGH on both motors.
 
 const int LEFT_IN1_PIN = 5;
 const int LEFT_IN2_PIN = 6;
@@ -12,11 +12,11 @@ const int RIGHT_IN3_PIN = 7;
 const int RIGHT_IN4_PIN = 8;
 
 void moveForward() {
-  digitalWrite(LEFT_IN1_PIN, HIGH);
-  digitalWrite(LEFT_IN2_PIN, LOW);
+  digitalWrite(LEFT_IN1_PIN, LOW);
+  digitalWrite(LEFT_IN2_PIN, HIGH);
 
-  digitalWrite(RIGHT_IN3_PIN, HIGH);
-  digitalWrite(RIGHT_IN4_PIN, LOW);
+  digitalWrite(RIGHT_IN3_PIN, LOW);
+  digitalWrite(RIGHT_IN4_PIN, HIGH);
 }
 
 void stopMotors() {
