@@ -18,37 +18,26 @@ This file records the team's current physical wiring and the values used by the 
 
 All Arduino/L293D/battery grounds must share a common ground.
 
-## Power
-
-- Arduino logic can be powered by USB during programming/testing.
-- The DC motors need their motor battery supply connected to the L293D motor-power input.
-- Do not rely on the Arduino 5V pin to power the DC motors.
-
 ## Current calibration values
 
-| Parameter | Current value | Status |
-|---|---:|---|
-| Stop distance | 15 cm | Starting value for closer wall approach; tune on course |
-| Servo rest pulse | 660 us | Current rest command |
-| Servo fire pulse | 2500 us | Extended beyond the previous 2400 us maximum |
-| Settling delay before firing | 500 ms | Tune if needed |
-| Servo fire hold | 500 ms | Tune if needed |
-
-The catapult now uses `Servo.writeMicroseconds()` instead of `Servo.write(angle)`.
-This allows direct pulse-width calibration beyond the previous 180-degree command mapping.
-
-Do not keep increasing the pulse if the servo hits a mechanical stop, stalls, buzzes continuously, or becomes hot.
+| Parameter | Current value |
+|---|---:|
+| Stop distance | 15 cm |
+| Servo rest pulse | 660 us |
+| Servo fire pulse | 2500 us |
+| Settling delay before firing | 500 ms |
+| Servo fire hold | 500 ms |
 
 ## Motor direction
 
-Latest physical test showed that LOW/HIGH drives the robot backwards.
+Latest physical test showed that HIGH/LOW drives the robot backwards.
 
 Current forward command:
 
 | Motor | First input | Second input |
 |---|---:|---:|
-| Left (D5/D6) | HIGH | LOW |
-| Right (D7/D8) | HIGH | LOW |
+| Left (D5/D6) | LOW | HIGH |
+| Right (D7/D8) | LOW | HIGH |
 
 Current stop command:
 
@@ -57,16 +46,4 @@ Current stop command:
 | Left | LOW | LOW |
 | Right | LOW | LOW |
 
-If the robot spins instead of moving straight, test each side independently and reverse only the motor that is physically backwards.
-
-## Final-course calibration checklist
-
-Before the graded run:
-
-1. Verify both wheels drive the robot forward.
-2. Attach the ultrasonic sensor rigidly and point it at the final wall.
-3. Test the stopping threshold at 20 cm, 15 cm, and 10 cm if necessary.
-4. Keep the largest threshold that stops reliably without touching the wall.
-5. Test the servo at 2500 us.
-6. If more travel is still needed, increase the pulse only in small steps and stop immediately if the servo reaches its mechanical limit or stalls.
-7. Power-cycle the Arduino and run the full sequence several times.
+The sensor + motor integration test already uses this same LOW/HIGH forward direction.
