@@ -46,6 +46,11 @@ const int SERVO_FIRE_PULSE_US = 2500;
 const unsigned long SETTLING_DELAY_MS = 500;
 const unsigned long FIRE_HOLD_MS = 500;
 
+// Slight forward-speed reduction without rewiring the L293D enable pins.
+// 45 ms ON + 5 ms OFF = 90% software duty cycle.
+const unsigned long FORWARD_ON_MS = 45;
+const unsigned long FORWARD_OFF_MS = 5;
+
 // Tune this so the robot reverses the required distance after firing.
 const unsigned long BACKUP_TIME_MS = 3000;
 
@@ -76,6 +81,13 @@ void moveForward() {
 
   digitalWrite(RIGHT_IN3_PIN, LOW);
   digitalWrite(RIGHT_IN4_PIN, HIGH);
+}
+
+void moveForwardReducedSpeed() {
+  moveForward();
+  delay(FORWARD_ON_MS);
+  stopMotors();
+  delay(FORWARD_OFF_MS);
 }
 
 void moveBackward() {
@@ -155,8 +167,8 @@ void loop() {
   }
 
   if (distanceCm > STOP_DISTANCE_CM) {
-    Serial.println("Forward");
-    moveForward();
+    Serial.println("Forward (90% speed)");
+    moveForwardReducedSpeed();
   } else {
     Serial.println("Wall reached -> FIRE -> REVERSE");
     fireAndReturn();
