@@ -19,9 +19,9 @@
 // 4. Reverse for BACKUP_TIME_MS.
 // 5. Stop.
 //
-// Servo control (reversed catapult orientation):
-// - Rest pulse: 2500 us
-// - Fire pulse: 660 us
+// Servo control:
+// - Rest pulse: 660 us
+// - Fire pulse: 2500 us
 
 #include <Servo.h>
 
@@ -43,8 +43,11 @@ const int SERVO_PIN = 3;
 const float SOUND_SPEED_CM_PER_US = 0.0345;
 const float STOP_DISTANCE_CM = 15.0;
 
-const int SERVO_REST_PULSE_US = 2500;
-const int SERVO_FIRE_PULSE_US = 660;
+const int SERVO_REST_PULSE_US = 660;
+const int SERVO_FIRE_PULSE_US = 2500;
+
+const int SERVO_MIN_PULSE_US = 660;
+const int SERVO_MAX_PULSE_US = 2500;
 
 const unsigned long SETTLING_DELAY_MS = 500;
 const unsigned long FIRE_HOLD_MS = 500;
@@ -146,7 +149,7 @@ void setup() {
 
   stopMotors();
 
-  catapultServo.attach(SERVO_PIN, SERVO_REST_PULSE_US, SERVO_FIRE_PULSE_US);
+  catapultServo.attach(SERVO_PIN, SERVO_MIN_PULSE_US, SERVO_MAX_PULSE_US);
   catapultServo.writeMicroseconds(SERVO_REST_PULSE_US);
 
   Serial.println("EG1311 robot ready.");
