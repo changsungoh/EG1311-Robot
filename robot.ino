@@ -9,8 +9,8 @@
 // - Servo signal: D3
 //
 // Latest physical observation:
-// - HIGH/LOW makes the robot move backwards.
-// - Forward is therefore LOW/HIGH on both sides.
+// - Motor direction was physically reversed.
+// - Forward is now HIGH/LOW on both sides.
 //
 // Sequence:
 // 1. Drive forward over the obstacles.
@@ -19,9 +19,9 @@
 // 4. Reverse for BACKUP_TIME_MS.
 // 5. Stop.
 //
-// Servo control:
-// - Rest pulse: 660 us
-// - Fire pulse: 2500 us
+// Servo control (reversed catapult orientation):
+// - Rest pulse: 2500 us
+// - Fire pulse: 660 us
 
 #include <Servo.h>
 
@@ -43,8 +43,8 @@ const int SERVO_PIN = 3;
 const float SOUND_SPEED_CM_PER_US = 0.0345;
 const float STOP_DISTANCE_CM = 15.0;
 
-const int SERVO_REST_PULSE_US = 660;
-const int SERVO_FIRE_PULSE_US = 2500;
+const int SERVO_REST_PULSE_US = 2500;
+const int SERVO_FIRE_PULSE_US = 660;
 
 const unsigned long SETTLING_DELAY_MS = 500;
 const unsigned long FIRE_HOLD_MS = 500;
@@ -82,11 +82,11 @@ void moveForward() {
   analogWrite(LEFT_ENABLE_PIN, FORWARD_SPEED_PWM);
   analogWrite(RIGHT_ENABLE_PIN, FORWARD_SPEED_PWM);
 
-  digitalWrite(LEFT_IN1_PIN, LOW);
-  digitalWrite(LEFT_IN2_PIN, HIGH);
+  digitalWrite(LEFT_IN1_PIN, HIGH);
+  digitalWrite(LEFT_IN2_PIN, LOW);
 
-  digitalWrite(RIGHT_IN3_PIN, LOW);
-  digitalWrite(RIGHT_IN4_PIN, HIGH);
+  digitalWrite(RIGHT_IN3_PIN, HIGH);
+  digitalWrite(RIGHT_IN4_PIN, LOW);
 }
 
 void moveBackward() {
@@ -95,11 +95,11 @@ void moveBackward() {
   analogWrite(RIGHT_ENABLE_PIN, BACKWARD_SPEED_PWM);
 
   // Exact opposite of moveForward().
-  digitalWrite(LEFT_IN1_PIN, HIGH);
-  digitalWrite(LEFT_IN2_PIN, LOW);
+  digitalWrite(LEFT_IN1_PIN, LOW);
+  digitalWrite(LEFT_IN2_PIN, HIGH);
 
-  digitalWrite(RIGHT_IN3_PIN, HIGH);
-  digitalWrite(RIGHT_IN4_PIN, LOW);
+  digitalWrite(RIGHT_IN3_PIN, LOW);
+  digitalWrite(RIGHT_IN4_PIN, HIGH);
 }
 
 void stopMotors() {
