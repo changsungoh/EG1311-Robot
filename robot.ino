@@ -3,10 +3,10 @@
 //
 // Confirmed team wiring:
 // - HC-SR04: TRIG D9, ECHO D10
-// - Left motor:  D5 -> L293D IN1, D6 -> L293D IN2
-// - Right motor: D7 -> L293D IN3, D8 -> L293D IN4
+// - Left motor direction:  D4 -> L293D pin 2 (1A), D7 -> pin 7 (2A)
+// - Right motor direction: D8 -> L293D pin 10 (3A), D12 -> pin 15 (4A)
+// - Motor enables (PWM):  D5 -> L293D pin 1 (1,2EN), D6 -> pin 9 (3,4EN)
 // - Servo signal: D3
-// - L293D enable pins 1 and 9 are tied HIGH to 5V.
 //
 // Latest physical observation:
 // - HIGH/LOW makes the robot move backwards.
@@ -29,10 +29,13 @@
 const int TRIG_PIN = 9;
 const int ECHO_PIN = 10;
 
-const int LEFT_IN1_PIN = 5;
-const int LEFT_IN2_PIN = 6;
-const int RIGHT_IN3_PIN = 7;
-const int RIGHT_IN4_PIN = 8;
+const int LEFT_IN1_PIN = 4;
+const int LEFT_IN2_PIN = 7;
+const int RIGHT_IN3_PIN = 8;
+const int RIGHT_IN4_PIN = 12;
+
+const int LEFT_ENABLE_PIN = 5;
+const int RIGHT_ENABLE_PIN = 6;
 
 const int SERVO_PIN = 3;
 
@@ -46,10 +49,10 @@ const int SERVO_FIRE_PULSE_US = 2500;
 const unsigned long SETTLING_DELAY_MS = 500;
 const unsigned long FIRE_HOLD_MS = 500;
 
-// Slight forward-speed reduction without rewiring the L293D enable pins.
-// 45 ms ON + 5 ms OFF = 90% software duty cycle.
-const unsigned long FORWARD_ON_MS = 45;
-const unsigned long FORWARD_OFF_MS = 5;
+// Slight forward-speed reduction using the L293D enable pins.
+// PWM range is 0-255; 230 is about 90% duty cycle.
+const int FORWARD_SPEED_PWM = 230;
+const int BACKWARD_SPEED_PWM = 255;
 
 // Tune this so the robot reverses the required distance after firing.
 const unsigned long BACKUP_TIME_MS = 3000;
@@ -76,6 +79,9 @@ float readDistanceCm() {
 }
 
 void moveForward() {
+  analogWrite(LEFT_ENABLE_PIN, FORWARD_SPEED_PWM);
+  analogWrite(RIGHT_ENABLE_PIN, FORWARD_SPEED_PWM);
+
   digitalWrite(LEFT_IN1_PIN, LOW);
   digitalWrite(LEFT_IN2_PIN, HIGH);
 
@@ -83,14 +89,11 @@ void moveForward() {
   digitalWrite(RIGHT_IN4_PIN, HIGH);
 }
 
-void moveForwardReducedSpeed() {
-  moveForward();
-  delay(FORWARD_ON_MS);
-  stopMotors();
-  delay(FORWARD_OFF_MS);
-}
-
 void moveBackward() {
+  // Keep reverse at full speed so BACKUP_TIME_MS still matches the previous calibration.
+  analogWrite(LEFT_ENABLE_PIN, BACKWARD_SPEED_PWM);
+  analogWrite(RIGHT_ENABLE_PIN, BACKWARD_SPEED_PWM);
+
   // Exact opposite of moveForward().
   digitalWrite(LEFT_IN1_PIN, HIGH);
   digitalWrite(LEFT_IN2_PIN, LOW);
@@ -100,6 +103,9 @@ void moveBackward() {
 }
 
 void stopMotors() {
+  analogWrite(LEFT_ENABLE_PIN, 0);
+  analogWrite(RIGHT_ENABLE_PIN, 0);
+
   digitalWrite(LEFT_IN1_PIN, LOW);
   digitalWrite(LEFT_IN2_PIN, LOW);
 
@@ -135,6 +141,8 @@ void setup() {
   pinMode(LEFT_IN2_PIN, OUTPUT);
   pinMode(RIGHT_IN3_PIN, OUTPUT);
   pinMode(RIGHT_IN4_PIN, OUTPUT);
+  pinMode(LEFT_ENABLE_PIN, OUTPUT);
+  pinMode(RIGHT_ENABLE_PIN, OUTPUT);
 
   stopMotors();
 
@@ -167,8 +175,8 @@ void loop() {
   }
 
   if (distanceCm > STOP_DISTANCE_CM) {
-    Serial.println("Forward (90% speed)");
-    moveForwardReducedSpeed();
+    Serial.println("Forward (PWM 230/255)");
+    moveForward();
   } else {
     Serial.println("Wall reached -> FIRE -> REVERSE");
     fireAndReturn();
