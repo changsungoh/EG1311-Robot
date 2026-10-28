@@ -41,10 +41,10 @@ const int SERVO_PIN = 3;
 
 // ---------- Calibration ----------
 const float SOUND_SPEED_CM_PER_US = 0.0345;
-const float STOP_DISTANCE_CM = 15.0;
+const float STOP_DISTANCE_CM = 20.0;
 
 const int SERVO_REST_PULSE_US = 660;
-const int SERVO_FIRE_PULSE_US = 2500;
+const int SERVO_FIRE_PULSE_US = 2200;
 
 const int SERVO_MIN_PULSE_US = 660;
 const int SERVO_MAX_PULSE_US = 2500;
