@@ -42,7 +42,7 @@ const int SERVO_PIN = 3;
 
 // ---------- Calibration ----------
 const float SOUND_SPEED_CM_PER_US = 0.0345;
-const float STOP_DISTANCE_CM = 20.0;
+const float STOP_DISTANCE_CM = 25.0;
 
 const int SERVO_THROW_PULSE_US = 1273;
 const int SERVO_WITHDRAW_PULSE_US = 2500;
@@ -238,6 +238,10 @@ void loop() {
 
   // Phase 3: only now can a sustained close reading be treated as the wall.
   if (distanceCm <= STOP_DISTANCE_CM) {
+    // Stop immediately on the first close reading so the robot does not
+    // continue driving into the wall while confirmation readings are taken.
+    stopMotors();
+
     wallReadingCount++;
 
     Serial.print("Wall confirmation count: ");
@@ -245,13 +249,15 @@ void loop() {
 
     if (wallReadingCount >= WALL_CONFIRM_READINGS) {
       Serial.println("Wall confirmed -> FIRE -> REVERSE");
-      stopMotors();
       fireAndReturn();
       return;
     }
-  } else {
-    wallReadingCount = 0;
+
+    delay(30);
+    return;
   }
+
+  wallReadingCount = 0;
 
   Serial.println("Forward (PWM 230/255)");
   moveForward();
