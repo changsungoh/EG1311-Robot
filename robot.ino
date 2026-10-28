@@ -55,7 +55,11 @@ const unsigned long FIRE_HOLD_MS = 500;
 // Slight forward-speed reduction using the L293D enable pins.
 // PWM range is 0-255; 230 is about 90% duty cycle.
 const int FORWARD_SPEED_PWM = 230;
-const int BACKWARD_SPEED_PWM = 255;
+const int BACKWARD_SPEED_PWM = 190;
+
+// Require several consecutive close readings before treating an object as the wall.
+// This helps reject brief ultrasonic hits from the ramp.
+const int WALL_CONFIRM_READINGS = 5;
 
 // Tune this so the robot reverses the required distance after firing.
 const unsigned long BACKUP_TIME_MS = 3000;
@@ -63,6 +67,7 @@ const unsigned long BACKUP_TIME_MS = 3000;
 // ---------- State ----------
 Servo catapultServo;
 bool sequenceComplete = false;
+int closeReadingCount = 0;
 
 float readDistanceCm() {
   digitalWrite(TRIG_PIN, LOW);
@@ -92,17 +97,23 @@ void moveForward() {
   digitalWrite(RIGHT_IN4_PIN, LOW);
 }
 
-void moveBackward() {
-  // Keep reverse at full speed so BACKUP_TIME_MS still matches the previous calibration.
-  analogWrite(LEFT_ENABLE_PIN, BACKWARD_SPEED_PWM);
-  analogWrite(RIGHT_ENABLE_PIN, BACKWARD_SPEED_PWM);
-
-  // Exact opposite of moveForward().
+void setBackwardDirection() {
   digitalWrite(LEFT_IN1_PIN, LOW);
   digitalWrite(LEFT_IN2_PIN, HIGH);
 
   digitalWrite(RIGHT_IN3_PIN, LOW);
   digitalWrite(RIGHT_IN4_PIN, HIGH);
+}
+
+void moveBackwardSmooth() {
+  // Soft-start reverse to reduce the sudden weight transfer that can tip the robot.
+  setBackwardDirection();
+
+  for (int pwm = 120; pwm <= BACKWARD_SPEED_PWM; pwm += 10) {
+    analogWrite(LEFT_ENABLE_PIN, pwm);
+    analogWrite(RIGHT_ENABLE_PIN, pwm);
+    delay(40);
+  }
 }
 
 void stopMotors() {
@@ -125,8 +136,8 @@ void fireAndReturn() {
   catapultServo.writeMicroseconds(SERVO_REST_PULSE_US);
 
   // Return after firing.
-  delay(200);
-  moveBackward();
+  delay(300);
+  moveBackwardSmooth();
   delay(BACKUP_TIME_MS);
   stopMotors();
 
@@ -172,18 +183,30 @@ void loop() {
 
   if (distanceCm < 0) {
     Serial.println("No ultrasonic reading -> STOP");
+    closeReadingCount = 0;
     stopMotors();
     delay(100);
     return;
   }
 
-  if (distanceCm > STOP_DISTANCE_CM) {
-    Serial.println("Forward (PWM 230/255)");
-    moveForward();
+  if (distanceCm <= STOP_DISTANCE_CM) {
+    closeReadingCount++;
+
+    Serial.print("Close reading count: ");
+    Serial.println(closeReadingCount);
+
+    if (closeReadingCount >= WALL_CONFIRM_READINGS) {
+      Serial.println("Wall confirmed -> FIRE -> REVERSE");
+      stopMotors();
+      fireAndReturn();
+      return;
+    }
   } else {
-    Serial.println("Wall reached -> FIRE -> REVERSE");
-    fireAndReturn();
+    closeReadingCount = 0;
   }
+
+  Serial.println("Forward (PWM 230/255)");
+  moveForward();
 
   delay(50);
 }
