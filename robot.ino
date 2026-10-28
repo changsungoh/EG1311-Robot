@@ -44,7 +44,7 @@ const float SOUND_SPEED_CM_PER_US = 0.0345;
 const float STOP_DISTANCE_CM = 20.0;
 
 const int SERVO_REST_PULSE_US = 660;
-const int SERVO_FIRE_PULSE_US = 2200;
+const int SERVO_FIRE_PULSE_US = 2000;
 
 const int SERVO_MIN_PULSE_US = 660;
 const int SERVO_MAX_PULSE_US = 2500;
@@ -57,9 +57,13 @@ const unsigned long FIRE_HOLD_MS = 500;
 const int FORWARD_SPEED_PWM = 230;
 const int BACKWARD_SPEED_PWM = 190;
 
-// Require several consecutive close readings before treating an object as the wall.
-// This helps reject brief ultrasonic hits from the ramp.
+// Course-order filtering:
+// the first sustained close object is treated as the ramp.
+// Wall detection is armed only after that close object has been cleared.
+const int RAMP_CONFIRM_READINGS = 3;
+const int CLEAR_CONFIRM_READINGS = 5;
 const int WALL_CONFIRM_READINGS = 5;
+const float CLEAR_DISTANCE_CM = 30.0;
 
 // Tune this so the robot reverses the required distance after firing.
 const unsigned long BACKUP_TIME_MS = 3000;
@@ -67,7 +71,12 @@ const unsigned long BACKUP_TIME_MS = 3000;
 // ---------- State ----------
 Servo catapultServo;
 bool sequenceComplete = false;
-int closeReadingCount = 0;
+bool rampDetected = false;
+bool wallDetectionArmed = false;
+
+int rampReadingCount = 0;
+int clearReadingCount = 0;
+int wallReadingCount = 0;
 
 float readDistanceCm() {
   digitalWrite(TRIG_PIN, LOW);
@@ -183,26 +192,64 @@ void loop() {
 
   if (distanceCm < 0) {
     Serial.println("No ultrasonic reading -> STOP");
-    closeReadingCount = 0;
     stopMotors();
     delay(100);
     return;
   }
 
+  // Phase 1: identify the first sustained close object as the ramp.
+  if (!rampDetected) {
+    if (distanceCm <= STOP_DISTANCE_CM) {
+      rampReadingCount++;
+
+      if (rampReadingCount >= RAMP_CONFIRM_READINGS) {
+        rampDetected = true;
+        clearReadingCount = 0;
+        Serial.println("Ramp detected -> wall detection still DISARMED");
+      }
+    } else {
+      rampReadingCount = 0;
+    }
+
+    moveForward();
+    delay(50);
+    return;
+  }
+
+  // Phase 2: wait until the ramp has been cleared and open space is visible again.
+  if (!wallDetectionArmed) {
+    if (distanceCm >= CLEAR_DISTANCE_CM) {
+      clearReadingCount++;
+
+      if (clearReadingCount >= CLEAR_CONFIRM_READINGS) {
+        wallDetectionArmed = true;
+        wallReadingCount = 0;
+        Serial.println("Ramp cleared -> wall detection ARMED");
+      }
+    } else {
+      clearReadingCount = 0;
+    }
+
+    moveForward();
+    delay(50);
+    return;
+  }
+
+  // Phase 3: only now can a sustained close reading be treated as the wall.
   if (distanceCm <= STOP_DISTANCE_CM) {
-    closeReadingCount++;
+    wallReadingCount++;
 
-    Serial.print("Close reading count: ");
-    Serial.println(closeReadingCount);
+    Serial.print("Wall confirmation count: ");
+    Serial.println(wallReadingCount);
 
-    if (closeReadingCount >= WALL_CONFIRM_READINGS) {
+    if (wallReadingCount >= WALL_CONFIRM_READINGS) {
       Serial.println("Wall confirmed -> FIRE -> REVERSE");
       stopMotors();
       fireAndReturn();
       return;
     }
   } else {
-    closeReadingCount = 0;
+    wallReadingCount = 0;
   }
 
   Serial.println("Forward (PWM 230/255)");
