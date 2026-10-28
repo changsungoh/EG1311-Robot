@@ -20,8 +20,8 @@
 // 5. Stop.
 //
 // Servo control:
-// - Rest pulse: 660 us
-// - Fire pulse: 2500 us
+// - Rest angle: 0 degrees
+// - Fire angle: 90 degrees
 
 #include <Servo.h>
 
@@ -43,11 +43,8 @@ const int SERVO_PIN = 3;
 const float SOUND_SPEED_CM_PER_US = 0.0345;
 const float STOP_DISTANCE_CM = 20.0;
 
-const int SERVO_REST_PULSE_US = 660;
-const int SERVO_FIRE_PULSE_US = 2000;
-
-const int SERVO_MIN_PULSE_US = 660;
-const int SERVO_MAX_PULSE_US = 2500;
+const int SERVO_REST_ANGLE = 0;
+const int SERVO_FIRE_ANGLE = 90;
 
 const unsigned long SETTLING_DELAY_MS = 500;
 const unsigned long FIRE_HOLD_MS = 500;
@@ -140,9 +137,9 @@ void fireAndReturn() {
   stopMotors();
   delay(SETTLING_DELAY_MS);
 
-  catapultServo.writeMicroseconds(SERVO_FIRE_PULSE_US);
+  catapultServo.write(SERVO_FIRE_ANGLE);
   delay(FIRE_HOLD_MS);
-  catapultServo.writeMicroseconds(SERVO_REST_PULSE_US);
+  catapultServo.write(SERVO_REST_ANGLE);
 
   // Return after firing.
   delay(300);
@@ -169,8 +166,8 @@ void setup() {
 
   stopMotors();
 
-  catapultServo.attach(SERVO_PIN, SERVO_MIN_PULSE_US, SERVO_MAX_PULSE_US);
-  catapultServo.writeMicroseconds(SERVO_REST_PULSE_US);
+  catapultServo.attach(SERVO_PIN);
+  catapultServo.write(SERVO_REST_ANGLE);
 
   Serial.println("EG1311 robot ready.");
   delay(1000);
